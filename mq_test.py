@@ -5,12 +5,13 @@
 @author:
 @time: 2017/5/23 19:23
 """
+from gevent import monkey
+
+monkey.patch_all()
 import logging
 
-import msgpack
-import pika
-
 from micro_service.mq import MQ, logger
+
 logger.setLevel(logging.DEBUG)
 console = logging.StreamHandler()
 logger.addHandler(console)
@@ -23,9 +24,13 @@ callback_queue = 'q2'
 
 
 def func(n):
-    print 'inside func'
+    import datetime, time
+    print 'start', datetime.datetime.now()
+    time.sleep(5)
+    print 'end', datetime.datetime.now()
     return n + 1
+
+
 #
 channel = mq.sub_task(queue, func)
 print channel
-

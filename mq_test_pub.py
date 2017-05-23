@@ -7,8 +7,8 @@
 """
 import logging
 
-
 from micro_service.mq import MQ, logger
+
 logger.setLevel(logging.DEBUG)
 console = logging.StreamHandler()
 logger.addHandler(console)
@@ -19,11 +19,5 @@ mq = MQ(AMQ_URI)
 queue = 'q1'
 # queue = 's1.my'
 callback_queue = 'q2'
-
-
-def func():
-    return 1 + 1
-
-
 
 mq.pub_task(queue, callback_queue, payload=([1], {}))
