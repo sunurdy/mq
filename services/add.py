@@ -3,7 +3,8 @@
 """
 @version: 
 @author:
-@time: 2017/5/23 18:51
+@time: 2017/5/24 10:23
 """
 
-published_service = {}
+def add_func(a, b):
+    return a + b
