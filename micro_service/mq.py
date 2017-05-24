@@ -40,20 +40,13 @@ class MQ(object):
         finally:
             connection.close()
 
-    def publish(self):
-        """发布订阅"""
-        pass
-
-    def subscribe(self):
-        pass
-
     def pub_task(self, queue, callback_queue, payload, correlation_id=None, ttl=None):
         """发布抢占任务,(client)"""
 
         encode_payload = self.encode_body(payload)
         with self.make_channel() as channel:
-            channel.queue_declare(queue=callback_queue, exclusive=False)  # 发布者的队列
-            channel.queue_declare(queue=queue, exclusive=False, auto_delete=False)  # 抢占的队列
+            channel.queue_declare(queue=callback_queue, exclusive=False, auto_delete=True)  # 发布者的队列
+            channel.queue_declare(queue=queue, exclusive=False)  # 抢占的队列
 
             flag = channel.basic_publish(exchange=self.exchange,
                                          routing_key=queue,
@@ -73,13 +66,14 @@ class MQ(object):
             logger.debug("pub_task =====================END")
 
     def sub_task(self, queue, call_back_func):
-        """服务端 消费者 抢占任务"""
+        """服务端 消费者 抢占任务 并交给回调函数"""
 
         def on_request(ch, method, props, body):
             def run(*dargs, **dkwargs):
                 res = call_back_func(*dargs, **dkwargs)
-                logger.debug('---\ngreenlet result')
-                logger.debug(res)
+                logger.debug('---run function of: %s' % call_back_func.__name__)
+                logger.debug('---*dargs: {0}, **dkwargs: {1}'.format(dargs, dkwargs))
+                logger.debug('---greenlet result: {0}'.format(res))
                 res = self.encode_body(res)
                 ch.basic_publish(exchange=self.exchange,
                                  routing_key=props.reply_to,
@@ -94,10 +88,28 @@ class MQ(object):
 
         with self.make_channel() as channel:
             channel.queue_declare(queue=queue)
+            channel.queue_bind(queue=queue, exchange=self.exchange, routing_key=queue)
             channel.basic_qos(prefetch_count=1)
             channel.basic_consume(on_request, queue=queue)
+            logger.debug(queue)
             logger.debug('about to consume')
             channel.start_consuming()
+
+    def subcribe_queue(self, callback_queue):
+        """客户端 监听消息并返回，"""
+        with self.make_channel() as channel:
+            channel.queue_declare(queue=callback_queue, auto_delete=True)
+            channel.basic_qos(prefetch_count=1)
+            # channel.basic_consume(on_request, queue=queue)
+            logger.debug('about to listen queue')
+            # channel.start_consuming()
+
+    def publish(self):
+        """发布订阅"""
+        pass
+
+    def subscribe(self):
+        pass
 
     def encode_body(self, message):
         rdata = msgpack.dumps(message)
