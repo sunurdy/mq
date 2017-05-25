@@ -26,7 +26,7 @@ AMQ_URI = "amqp://user:3^)NB@101.199.126.121:5672/api"
 
 s = MicroService('s1', AMQ_URI, exchange='play')
 # queue = 'q1'
-queue = s.service_queue('add')  # 's1.my'
+queue = s.service_task_queue('add')  # 's1.my'
 callback_queue = s.client_callback_queue('add')  # 'q2'
 print queue
 print callback_queue

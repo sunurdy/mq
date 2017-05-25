@@ -7,23 +7,24 @@
 """
 import contextlib
 import logging
+import os
 import uuid
 
 import msgpack
 import pika
-from gevent import monkey
+from gevent.monkey import patch_all
 from gevent.pool import Pool
 
-monkey.patch_all()
+patch_all()
 logger = logging.getLogger(__name__)
 
 
 class MQ(object):
-    def __init__(self, amqp, exchange='center', pool_size=100):
+    def __init__(self, amqp, exchange='center', gevent_pool_size=100):
         self.amqp = amqp
         self.exchange = exchange
         self.exchange_pub_sub = '%s_%s' % (exchange, 'pub_sub')
-        self.pool = Pool(pool_size)
+        self.pool = Pool(gevent_pool_size)
 
         connection = pika.BlockingConnection(pika.URLParameters(amqp))
         channel = connection.channel()
@@ -71,7 +72,7 @@ class MQ(object):
         def on_request(ch, method, props, body):
             def run(*dargs, **dkwargs):
                 res = call_back_func(*dargs, **dkwargs)
-                logger.debug('---run function of: %s' % call_back_func.__name__)
+                logger.debug('---run function of: {0}  @pid: {1}'.format(call_back_func.__name__, os.getpid()))
                 logger.debug('---*dargs: {0}, **dkwargs: {1}'.format(dargs, dkwargs))
                 logger.debug('---greenlet result: {0}'.format(res))
                 res = self.encode_body(res)

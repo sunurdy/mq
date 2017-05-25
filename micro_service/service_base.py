@@ -13,6 +13,7 @@ from gevent.monkey import patch_all
 from micro_service.mq import MQ
 from services.add import add_func
 from services.sleep_func import sleep_function
+
 patch_all()
 logger = logging.getLogger(__name__)
 
@@ -30,33 +31,37 @@ class MicroService(MQ):
         self.services.setdefault('add', add_func)
         self.services.setdefault('sleep', sleep_function)
 
-    def service_queue(self, service):
+    def service_task_queue(self, service):
         return "{0}.{1}".format(self.service_scope, service)
 
     def client_callback_queue(self, service):
-        return "rpc_{0}.{1}".format(self.service_queue(service), uuid4())
+        return "rpc_{0}.{1}".format(self.service_task_queue(service), uuid4())
 
     def start(self):
         def make_coroutine(service, func):
-            def co():
-                self.sub_task(self.service_queue(service=service), func)
-            return co
+            return lambda: self.sub_task(self.service_task_queue(service=service), func)
 
         logger.info('------MICRO SERVICE START ------')
         for service, func in self.services.iteritems():
             print 5 * '-', '\n', 'service', service
-            print 'queue:', self.service_queue(service=service)
-            self.pool.spawn(make_coroutine(service, func),)
-            # self.sub_task(self.service_queue(service=service), func)
+            print 'queue:', self.service_task_queue(service=service)
+            self.pool.spawn(make_coroutine(service, func), )
+            # 使用协程运行sub_task instead of direct call # self.sub_task(self.service_task_queue(service=service), func)
         self.pool.join()
 
-    #client
+    # client
     def rpc(self, service):
+        """
+        step1. 发布任务到任务队列 pub_task
+        step2. 监听结果队列   subscribe_queue(callback_queue)
+        :param service:
+        :return: result
+        """
         pass
 
 
-            # region WORK TASK
-            # endregion
+        # region WORK TASK
+        # endregion
 
-            # region MANAGE TOOLS
-            # endregion
+        # region MANAGE TOOLS
+        # endregion
