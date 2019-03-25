@@ -18,7 +18,7 @@ logger.setLevel(logging.DEBUG)
 AMQ_URI = "amqp://user:3^)NB@101.199.126.121:5672/api"
 
 mq = MQ(AMQ_URI, exchange='play')
-queue = 's1.add'
+queue = 's1.sleep'
 # queue = 'q1'
 callback_queue = 'q2'
 

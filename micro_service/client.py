@@ -8,7 +8,6 @@
 from micro_service.service_base import MicroService
 
 
-class MicroService_Client(MicroService):
-    def __init__(self, amqp, exchange):
-        super(MicroService_Client, self).__init__(amqp, exchange=exchange)
-
+class MicroServiceClient(MicroService):
+    def __init__(self, service_scope, amqp, exchange):
+        super(MicroServiceClient, self).__init__(service_scope, amqp, exchange=exchange)

@@ -8,9 +8,9 @@
 from micro_service.service_base import MicroService
 
 
-class MicroService_Server(MicroService):
-    def __init__(self, amqp, exchange):
-        super(MicroService_Server, self).__init__(amqp, exchange=exchange)
+class MicroServiceServer(MicroService):
+    def __init__(self, service_scope, amqp, exchange):
+        super(MicroServiceServer, self).__init__(service_scope, amqp, exchange=exchange)
 
     def run(self):
         pass
@@ -20,4 +20,3 @@ class MicroService_Server(MicroService):
 
     def listen_manage(self):
         pass
-

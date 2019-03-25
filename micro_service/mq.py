@@ -92,18 +92,20 @@ class MQ(object):
             channel.queue_bind(queue=queue, exchange=self.exchange, routing_key=queue)
             channel.basic_qos(prefetch_count=1)
             channel.basic_consume(on_request, queue=queue)
-            logger.debug(queue)
-            logger.debug('about to consume')
+            logger.debug('About to consume: {0}'.format(queue))
             channel.start_consuming()
 
-    def subcribe_queue(self, callback_queue):
+    def subscribe_queue(self, callback_queue):
         """客户端 监听消息并返回，"""
+        def on_request(ch, method, props, body):
+            logger.debug('Into on_request')
+            return self.decode_body(body)
         with self.make_channel() as channel:
             channel.queue_declare(queue=callback_queue, auto_delete=True)
             channel.basic_qos(prefetch_count=1)
-            # channel.basic_consume(on_request, queue=queue)
-            logger.debug('about to listen queue')
-            # channel.start_consuming()
+            channel.basic_consume(on_request, queue=callback_queue)
+            logger.debug('About to listen queue: {}'.format(callback_queue))
+            channel.start_consuming()
 
     def publish(self):
         """发布订阅"""
